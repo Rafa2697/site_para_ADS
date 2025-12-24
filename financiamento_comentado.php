@@ -295,6 +295,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3163843239830061"
+     crossorigin="anonymous"></script>
 </head>
 
 <body>
