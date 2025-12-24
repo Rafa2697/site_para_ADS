@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tabela FIPE - Busca</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      margin: 20px;
+      background: #f7f7f7
+    }
+
+    .card {
+      background: #fff;
+      padding: 18px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+      max-width: 900px;
+      margin: auto
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 6px;
+      font-weight: 600
+    }
+
+    select,
+    button {
+      padding: 8px 10px;
+      font-size: 14px
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .col {
+      flex: 1;
+      min-width: 150px
+    }
+
+    pre {
+      background: #222;
+      color: #dfe;
+      text-align: left;
+      padding: 12px;
+      border-radius: 6px;
+      overflow: auto
+    }
+
+    .muted {
+      color: #666;
+      font-size: 14px
+    }
+
+    @media screen and (max-width: 768px) {
+        .modeloSelect{
+          width: 50%;
+       }
+
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h2>Tabela FIPE — Busca de veículo</h2>
+    <p class="muted">Selecione o tipo, marca, modelo e ano para ver os dados FIPE.</p>
+
+    <label for="tipo">Tipo de veículo</label>
+    <select id="tipo">
+      <option value="">-- selecione --</option>
+      <option value="cars">Carros</option>
+      <option value="motorcycles">Motos</option>
+      <option value="trucks">Caminhões</option>
+    </select>
+
+    <div class="row" style="margin-top:12px">
+      <div class="col">
+        <label for="marca">Marca</label>
+        <select id="marca" disabled>
+          <option value="">-- primeiro selecione o tipo --</option>
+        </select>
+      </div>
+      <div class="col">
+        <label for="modelo">Modelo</label>
+        <select id="modelo" disabled>
+          <option value="">-- selecione a marca --</option>
+        </select>
+      </div>
+      <div class="col">
+        <label for="ano">Ano / Código</label>
+        <select id="ano" disabled class="modeloSelect">
+          <option value="">-- selecione o modelo --</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <button id="buscar" disabled>Buscar dados FIPE</button>
+      <span id="status" class="muted" style="margin-left:12px"></span>
+    </div>
+
+    <hr style="margin:18px 0">
+
+    <h3>Resultado</h3>
+    <div id="resultado">
+      <p class="muted">Os dados aparecerão aqui após a busca.</p>
+    </div>
+  </div>
+
+  <script>
+    const tipoEl = document.getElementById('tipo');
+    const marcaEl = document.getElementById('marca');
+    const modeloEl = document.getElementById('modelo');
+    const anoEl = document.getElementById('ano');
+    const buscarBtn = document.getElementById('buscar');
+    const resultadoEl = document.getElementById('resultado');
+    const statusEl = document.getElementById('status');
+
+    const API_BASE = 'https://fipe.parallelum.com.br/api/v2';
+
+    function setStatus(text) { statusEl.textContent = text || '' }
+
+    tipoEl.addEventListener('change', async () => {
+      clearSelect(marcaEl, '-- carregando marcas --');
+      clearSelect(modeloEl, '-- selecione a marca --', true);
+      clearSelect(anoEl, '-- selecione o modelo --', true);
+      buscarBtn.disabled = true;
+
+      const tipo = tipoEl.value;
+      if (!tipo) { setStatus(''); marcaEl.disabled = true; return }
+
+      try {
+        setStatus('Buscando marcas...');
+        const res = await fetch(`${API_BASE}/${tipo}/brands`);
+        if (!res.ok) throw new Error('Erro ao buscar marcas');
+        const data = await res.json();
+
+        console.log(data);
+        populateSelect(marcaEl, data, 'Selecione a marca');
+        marcaEl.disabled = false;
+        setStatus('Marcas carregadas');
+      } catch (err) {
+        setStatus('Erro ao carregar marcas');
+        marcaEl.disabled = true;
+        console.error(err);
+        resultadoEl.innerHTML = `<pre>${err}</pre>`;
+      }
+    });
+
+    marcaEl.addEventListener('change', async () => {
+      clearSelect(modeloEl, '-- carregando modelos --');
+      clearSelect(anoEl, '-- selecione o modelo --', true);
+      buscarBtn.disabled = true;
+
+      const tipo = tipoEl.value;
+      const marcaId = marcaEl.value;
+      if (!marcaId) { modeloEl.disabled = true; return }
+      console.log(marcaId, "<-- era pra ser o ID")
+      try {
+        setStatus('Buscando modelos...');
+        const res = await fetch(`${API_BASE}/${tipo}/brands/${marcaId}/models`);
+        if (!res.ok) throw new Error('Erro ao buscar modelos');
+        const data = await res.json();
+
+        // a resposta pode ser {models:[...]} ou um array direto
+        const models = data.models || data;
+        populateSelect(modeloEl, models, 'Selecione o modelo');
+        modeloEl.disabled = false;
+        setStatus('Modelos carregados');
+      } catch (err) {
+        setStatus('Erro ao carregar modelos');
+        modeloEl.disabled = true;
+        console.error(err);
+        resultadoEl.innerHTML = `<pre>${err}</pre>`;
+      }
+    });
+
+    modeloEl.addEventListener('change', async () => {
+      clearSelect(anoEl, '-- carregando anos --');
+      buscarBtn.disabled = true;
+
+      const tipo = tipoEl.value;
+      const marcaId = marcaEl.value;
+      const modeloId = modeloEl.value;
+      if (!modeloId) { anoEl.disabled = true; return }
+
+      try {
+        setStatus('Buscando anos...');
+        const res = await fetch(`${API_BASE}/${tipo}/brands/${marcaId}/models/${modeloId}/years`);
+        if (!res.ok) throw new Error('Erro ao buscar anos');
+        const data = await res.json();
+
+        // resposta é um array de {id,name}
+        populateSelect(anoEl, data, 'Selecione o ano', true);
+        anoEl.disabled = false;
+        buscarBtn.disabled = false;
+        setStatus('Anos carregados');
+      } catch (err) {
+        setStatus('Erro ao carregar anos');
+        anoEl.disabled = true;
+        console.error(err);
+        resultadoEl.innerHTML = `<pre>${err}</pre>`;
+      }
+    });
+
+    buscarBtn.addEventListener('click', async () => {
+      const tipo = tipoEl.value;
+      const marcaId = marcaEl.value;
+      const modeloId = modeloEl.value;
+      const anoId = anoEl.value; // ex: "2016-1"
+      if (!tipo || !marcaId || !modeloId || !anoId) return alert('Selecione todos os campos');
+
+      try {
+        setStatus('Buscando dados do veículo...');
+        const res = await fetch(`${API_BASE}/${tipo}/brands/${marcaId}/models/${modeloId}/years/${encodeURIComponent(anoId)}`);
+        if (!res.ok) throw new Error('Erro ao buscar dados do veículo');
+        const data = await res.json();
+
+        renderResult(data, tipo);
+        setStatus('Dados carregados');
+      } catch (err) {
+        setStatus('Erro ao buscar dados');
+        console.error(err);
+        resultadoEl.innerHTML = `<pre>${err}</pre>`;
+      }
+    });
+
+    function clearSelect(el, placeholder = '--', disable = false) {
+      el.innerHTML = '';
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = placeholder;
+      el.appendChild(opt);
+      el.disabled = !!disable;
+    }
+
+    function populateSelect(el, items, firstLabel = '-- selecione --', useIdName = false) {
+      el.innerHTML = '';
+      const opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = `-- ${firstLabel} --`;
+      el.appendChild(opt0);
+
+      items.forEach(item => {
+        const option = document.createElement('option');
+        // item pode ser string ou objeto com várias chaves (id, code, codigo, name, nome)
+        if (typeof item === 'string') {
+          option.value = item;
+          option.textContent = item;
+        } else if (item && typeof item === 'object') {
+          // Priorizar chaves comuns da API FIPE v2: 'code' e 'name'
+          const id = item.id ?? item.ID ?? item.code ?? item.Code ?? item.codigo ?? item.Codigo ?? item.value ?? item.key;
+          const name = item.name ?? item.nome ?? item.label ?? item.title ?? item.Name ?? item.Label ?? item.nome;
+          option.value = id ?? name ?? '';
+          option.textContent = name ?? id ?? '';
+        }
+        el.appendChild(option);
+      });
+    }
+
+    function renderResult(data, tipo) {
+      // mostra JSON formatado e um resumo amigável
+      const pretty = JSON.stringify(data, null, 2);
+      let html = `<pre>${escapeHtml(pretty)}</pre>`;
+
+      // campos principais se existirem
+      const fields = ['price', 'brand', 'model', 'modelYear', 'fuel', 'codeFipe', 'referenceMonth', 'fuelAcronym'];
+      const present = fields.filter(f => data[f] !== undefined);
+      if (present.length) {
+        html = '<div style="margin-bottom:12px">';
+        present.forEach(f => {
+          html += `<div><strong>${f}:</strong> ${escapeHtml(String(data[f]))}</div>`;
+        });
+        html += '</div>' + `<details><summary>JSON bruto</summary><pre>${escapeHtml(pretty)}</pre></details>`;
+      }
+
+      resultadoEl.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>\"]+/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] || c);
+    }
+  </script>
+</body>
+
+</html>

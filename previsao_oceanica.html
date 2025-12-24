@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previsão Oceânica</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f6f8fb;
+            --card: #ffffff;
+            --primary: #0b63d6;
+            --muted: #6b7280
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: #0f172a;
+            padding: 12px
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 2px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px
+        }
+
+        h1 {
+            font-size: 20px;
+            margin: 0
+        }
+
+        p.lead {
+            margin: 6px 0 0;
+            color: var(--muted)
+        }
+
+        .card {
+            background: var(--card);
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(12, 18, 35, 0.06)
+        }
+
+        .search-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 14px
+        }
+
+        .search {
+            flex: 1;
+            position: relative
+        }
+
+        input[type="search"] {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #e6e9ef;
+            font-size: 14px
+        }
+
+        .suggestions {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 46px;
+            background: var(--card);
+            border: 1px solid #e6e9ef;
+            border-radius: 8px;
+            max-height: 220px;
+            overflow: auto;
+            z-index: 5
+        }
+
+        .suggestions button {
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            border: 0;
+            background: transparent;
+            border-bottom: 1px solid #f1f3f6;
+            cursor: pointer
+        }
+
+        .suggestions button:last-child {
+            border-bottom: 0
+        }
+
+        .meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px
+        }
+
+        .meta .info {
+            font-size: 14px;
+            color: var(--muted)
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 640px;
+            gap: 16px;
+            margin-top: 12px
+        }
+
+        .table-wrap {
+            overflow: auto
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #f1f3f6
+        }
+
+        th {
+            font-weight: 600;
+            color: #0b263b
+        }
+
+        .small {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        @media(max-width:880px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .suggestions {
+                top: 52px
+            }
+        }
+
+        /* containers para gráficos maiores e responsivos */
+        .chart-container {
+            width: 100%;
+            height: 360px;
+            padding: 12px
+        }
+
+        .card.chart-container {
+            box-shadow: none
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important
+        }
+
+        @media(max-width:880px) {
+            .chart-container {
+                height: 260px
+            }
+        }
+
+        /* alternância de cores por dia */
+        .day-even {
+            background: rgba(5, 102, 228, 0.178)
+        }
+
+        .day-odd {
+            background: transparent
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Previsão Oceânica</h1>
+                <p class="lead">Escolha uma cidade para ver a previsão do mar (6 dias).</p>
+            </div>
+        </header>
+
+        <div class="card">
+            <div class="search-row">
+                <div class="search">
+                    <input id="cityInput" type="search" placeholder="Filtrar cidades (ex: Peruíbe, SP)..."
+                        aria-label="Buscar cidade">
+                    <select id="citySelect" class="suggestions" size="8" hidden></select>
+                </div>
+                <div style="min-width:120px">
+                    <select id="daysSelect" disabled style="display:none">
+                        <option value="6">6 dias</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                <div id="notices" class="small" style="color:var(--muted)"></div>
+                <button id="reloadCities" type="button"
+                    style="margin-left:auto;padding:6px 10px;border-radius:8px;border:1px solid #e6e9ef;background:#fff;cursor:pointer">Recarregar
+                    cidades</button>
+            </div>
+
+            <div id="forecastArea" style="display:none">
+                <div class="meta">
+                    <div class="info"><strong id="cityName"></strong> — <span id="cityState"></span></div>
+                    <div class="info">Atualizado em: <span id="updatedAt"></span></div>
+                </div>
+
+                <div class="grid">
+                    <div class="table-wrap card" style="padding:0">
+                        <table id="forecastTable">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Condição</th>
+                                    <th>Descrição</th>
+                                    <th>Min (°C)</th>
+                                    <th>Max (°C)</th>
+                                    <th>Índice UV</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="card chart-container">
+                        <canvas id="chartTemp"></canvas>
+                    </div>
+                </div>
+                <!-- Seção de ondas -->
+                <div style="margin-top:16px">
+                    <h3 style="margin:8px 0 12px;font-size:16px">Ondas (altura, direção, vento)</h3>
+                    <div class="grid">
+                        <div class="table-wrap card" style="padding:0">
+                            <table id="wavesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Hora</th>
+                                        <th>Altura (m)</th>
+                                        <th>Direção</th>
+                                        <th>Vento (m/s)</th>
+                                        <th>Direção Vento</th>
+                                        <th>Agitação</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="card chart-container">
+                            <canvas id="chartWaves"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="small" style="margin-top:10px;color:var(--muted)">Dados fornecidos por Brasil API / CPTEC.</p>
+    </div>
+
+    <script>
+        const citiesUrl = 'https://brasilapi.com.br/api/cptec/v1/cidade';
+        const cityInput = document.getElementById('cityInput');
+        const selectEl = document.getElementById('citySelect');
+        const notices = document.getElementById('notices');
+        const forecastArea = document.getElementById('forecastArea');
+        const cityNameEl = document.getElementById('cityName');
+        const cityStateEl = document.getElementById('cityState');
+        const updatedAtEl = document.getElementById('updatedAt');
+        const forecastTableBody = document.querySelector('#forecastTable tbody');
+        const chartCtx = document.getElementById('chartTemp').getContext('2d');
+        let cities = [];
+        let chart;
+
+        // Busca cidades por nome usando o endpoint /cidade/{nome}
+        async function searchCities(query) {
+            const q = (query || '').trim();
+            if (!q || q.length < 1) { selectEl.hidden = true; notices.textContent = ''; return; }
+            notices.textContent = `Buscando cidades para: ${q} ...`;
+            try {
+                let encoded = encodeURIComponent(q.toLowerCase());
+                let res = await fetch(`${citiesUrl}/${encoded}`);
+                if (!res.ok) {
+                    // fallback: remover acentos e tentar novamente
+                    const normalized = q.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+                    encoded = encodeURIComponent(normalized);
+                    res = await fetch(`${citiesUrl}/${encoded}`);
+                }
+                if (!res.ok) {
+                    cities = [];
+                    renderSuggestions([]);
+                    notices.textContent = `Nenhuma cidade encontrada para: ${q}`;
+                    return;
+                }
+                const data = await res.json();
+                cities = Array.isArray(data) ? data : [];
+                notices.textContent = `Encontradas ${cities.length} cidade(s).`;
+                renderSuggestions(cities);
+            } catch (err) {
+                console.error('Erro searchCities:', err);
+                notices.textContent = 'Erro ao buscar cidades — verifique o console.';
+                cities = [];
+                renderSuggestions([]);
+            }
+        }
+
+        document.getElementById('reloadCities').addEventListener('click', () => { searchCities(cityInput.value || ''); });
+
+        function debounce(fn, delay = 300) {
+            let t;
+            return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay) }
+        }
+
+        function renderSuggestions(list) {
+            selectEl.innerHTML = '';
+            if (!list || !list.length) { selectEl.hidden = true; return }
+            // se a lista for grande, mostrará as primeiras 100 para performance
+            list.slice(0, 1000).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = String(c.id);
+                opt.textContent = `${c.nome} — ${c.estado} (ID: ${c.id})`;
+                selectEl.appendChild(opt);
+            });
+            selectEl.hidden = false;
+            selectEl.selectedIndex = -1;
+        }
+
+        function selectCity(c) {
+            selectEl.hidden = true;
+            cityInput.value = `${c.nome}, ${c.estado}`;
+            fetchForecast(c.id);
+            fetchWaves(c.id);
+        }
+
+        async function fetchForecast(cityId) {
+            forecastArea.style.display = 'none';
+            notices.textContent = 'Carregando previsão...';
+            try {
+                const url = `https://brasilapi.com.br/api/cptec/v1/clima/previsao/${cityId}/6`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Nenhuma previsão disponível');
+                const data = await res.json();
+                renderForecast(data);
+                notices.textContent = '';
+            } catch (err) {
+                notices.textContent = 'Erro ao obter previsão para esta cidade.';
+                console.error(err);
+            }
+        }
+
+        function renderForecast(data) {
+            forecastArea.style.display = 'block';
+            cityNameEl.textContent = data.cidade || '';
+            cityStateEl.textContent = data.estado || '';
+            updatedAtEl.textContent = data.atualizado_em || '';
+            forecastTableBody.innerHTML = '';
+
+            const labels = [];
+            const mins = [];
+            const maxs = [];
+
+            (data.clima || []).forEach((day, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = (idx % 2 === 0) ? 'day-even' : 'day-odd';
+                tr.innerHTML = `
+                    <td>${day.data}</td>
+                    <td>${day.condicao}</td>
+                    <td>${day.condicao_desc}</td>
+                    <td>${day.min ?? '-'}</td>
+                    <td>${day.max ?? '-'}</td>
+                    <td>${day.indice_uv ?? '-'}</td>
+                `;
+                forecastTableBody.appendChild(tr);
+
+                labels.push(day.data);
+                mins.push(Number(day.min));
+                maxs.push(Number(day.max));
+            });
+
+            if (chart) chart.destroy();
+            chart = new Chart(chartCtx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Min (°C)', data: mins, borderColor: '#0b63d6', backgroundColor: 'rgba(11,99,214,0.08)', tension: 0.3 },
+                        { label: 'Max (°C)', data: maxs, borderColor: '#d60b4a', backgroundColor: 'rgba(214,11,74,0.07)', tension: 0.3 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: false } }
+                }
+            });
+        }
+
+        // --- Ondas ---
+        const wavesChartCtx = document.getElementById('chartWaves').getContext('2d');
+        let wavesChart;
+
+        async function fetchWaves(cityId) {
+            try {
+                notices.textContent = 'Carregando dados de ondas...';
+                const url = `https://brasilapi.com.br/api/cptec/v1/ondas/${cityId}/6`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Nenhuma informação de ondas disponível');
+                const data = await res.json();
+                renderWaves(data);
+                notices.textContent = '';
+            } catch (err) {
+                console.error('Erro fetchWaves:', err);
+                notices.textContent = 'Erro ao obter dados de ondas.';
+                // limpa tabela/ gráfico
+                renderWaves({ ondas: [] });
+            }
+        }
+
+        function renderWaves(data) {
+            const tbody = document.querySelector('#wavesTable tbody');
+            tbody.innerHTML = '';
+
+            const labels = [];
+            const heights = [];
+
+            (data.ondas || []).forEach((day, dIdx) => {
+                const date = day.data;
+                const rowClass = (dIdx % 2 === 0) ? 'day-even' : 'day-odd';
+                (day.dados_ondas || []).forEach(entry => {
+                    const hora = entry.hora || '';
+                    const tr = document.createElement('tr');
+                    tr.className = rowClass;
+                    tr.innerHTML = `
+                        <td>${date}</td>
+                        <td>${hora}</td>
+                        <td>${entry.altura_onda ?? '-'}</td>
+                        <td>${entry.direcao_onda_desc ?? entry.direcao_onda ?? '-'}</td>
+                        <td>${entry.vento ?? '-'}</td>
+                        <td>${entry.direcao_vento_desc ?? entry.direcao_vento ?? '-'}</td>
+                        <td>${entry.agitation ?? '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    // para o gráfico, use data+hora
+                    const label = `${date} ${hora}`;
+                    labels.push(label);
+                    heights.push(Number(entry.altura_onda ?? 0));
+                });
+            });
+
+            if (wavesChart) wavesChart.destroy();
+            wavesChart = new Chart(wavesChartCtx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{ label: 'Altura da Onda (m)', data: heights, borderColor: '#0b8a5f', backgroundColor: 'rgba(11,138,95,0.08)', tension: 0.2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        const handleInput = debounce(() => {
+            const q = cityInput.value.trim();
+            if (q.length >= 3) {
+                // busca no endpoint /cidade/{nome}
+                searchCities(q);
+            } else {
+                // esconde select se menos de 3 caracteres
+                selectEl.hidden = true;
+                notices.textContent = q.length ? 'Digite ao menos 3 caracteres para buscar.' : '';
+            }
+        }, 150);
+
+        cityInput.addEventListener('input', handleInput);
+        // Listener adicional de debug para mostrar o que está sendo digitado (mantido)
+        cityInput.addEventListener('input', (e) => {
+            try {
+                console.log('DEBUG input event, value=', cityInput.value);
+                // não sobrescreve mensagens de busca
+                //notices.textContent = `Digitado: "${cityInput.value}"`;
+            } catch (err) {
+                console.error('DEBUG erro lendo cityInput.value', err);
+            }
+        });
+        cityInput.addEventListener('focus', () => { if (selectEl.children.length) selectEl.hidden = false });
+        document.addEventListener('click', (e) => { if (!e.target.closest('.search')) selectEl.hidden = true });
+
+        // quando o usuário escolher no select
+        selectEl.addEventListener('change', () => {
+            const id = selectEl.value;
+            if (!id) return;
+            const c = cities.find(x => String(x.id) === String(id));
+            if (c) selectCity(c);
+        });
+
+        // Inicialização: nada a carregar até o usuário digitar
+    </script>
+</body>
+
+</html>
