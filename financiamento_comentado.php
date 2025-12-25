@@ -199,6 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="utf-8"> <!-- define encoding UTF-8 -->
     <meta name="viewport" content="width=device-width,initial-scale=1"> <!-- torna responsivo -->
+    <meta name="google-adsense-account" content="ca-pub-3163843239830061">
     <title>Calculadora de Financiamento (Tabela Price)</title> <!-- título da página -->
     <style>
         /* Estilos inline: definem aparência básica da página */
