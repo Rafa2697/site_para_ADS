@@ -7,70 +7,300 @@
   <meta name="google-adsense-account" content="ca-pub-3163843239830061">
   <title>Tabela FIPE - Busca</title>
   <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --primary: #0b69ff;
+      --accent: #06b6d4;
+      --text: #0f172a;
+      --shadow: 0 6px 20px rgba(2, 6, 23, 0.08);
+      --radius: 10px;
+      --gap: 14px;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
     body {
-      font-family: Arial, Helvetica, sans-serif;
-      margin: 20px;
-      background: #f7f7f7
+      height: 100%
+    }
+
+    body {
+      font-family: Inter, "Segoe UI", Roboto, Arial, Helvetica, sans-serif;
+      margin: 24px;
+      background: linear-gradient(180deg, var(--bg), #eef2ff 60%);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: center;
+    }
+
+    /* artigo principal */
+    body>div:first-child {
+      max-width: 1100px;
+      width: 100%;
+      background: transparent;
+      padding: 0;
+    }
+
+    article {
+      background: var(--card);
+      padding: 22px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin: 0 auto;
+      max-width: 1100px;
+      line-height: 1.6;
+    }
+
+    article h1 {
+      margin: 0 0 10px;
+      font-size: 1.6rem;
+      color: var(--text);
+    }
+
+    article h2 {
+      margin-top: 18px;
+      font-size: 1.05rem;
+      color: var(--primary);
+    }
+
+    article p,
+    article li {
+      color: #1f2937;
+      font-size: 0.98rem
     }
 
     .card {
-      background: #fff;
+      background: var(--card);
       padding: 18px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
       max-width: 900px;
-      margin: auto
+      width: 100%;
+      margin: 0 auto;
+      transition: transform .18s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px)
     }
 
     label {
       display: block;
       margin: 10px 0 6px;
-      font-weight: 600
+      font-weight: 600;
+      color: #0b1220;
+      font-size: 0.95rem;
     }
 
     select,
     button {
-      padding: 8px 10px;
-      font-size: 14px
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: 8px;
+      border: 1px solid #e6e9ef;
+      background: #fff;
+      transition: box-shadow .12s, border-color .12s;
+      outline: none;
+    }
+
+    select:focus,
+    button:focus {
+      box-shadow: 0 6px 18px rgba(11, 105, 255, 0.08);
+      border-color: rgba(11, 105, 255, 0.22)
+    }
+
+    select {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer
     }
 
     .row {
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap
+      gap: var(--gap);
+      flex-wrap: wrap;
+      align-items: flex-end;
     }
 
     .col {
       flex: 1;
-      min-width: 150px
+      min-width: 160px;
+    }
+
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button[disabled] {
+      background: #e6eefc;
+      color: #9fb4ff;
+      cursor: not-allowed;
+      box-shadow: none;
+      border: 1px solid #e6eefc;
     }
 
     pre {
-      background: #222;
-      color: #dfe;
+      background: #0b1220;
+      color: #dff3e6;
       text-align: left;
       padding: 12px;
-      border-radius: 6px;
-      overflow: auto
+      border-radius: 8px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+      font-size: 13px;
+      max-height: 300px;
     }
 
     .muted {
-      color: #666;
+      color: var(--muted);
       font-size: 14px
     }
 
-    @media screen and (max-width: 768px) {
-        .modeloSelect{
-          width: 50%;
-       }
+    #resultado {
+      margin-top: 6px;
+    }
 
+    /* status com "spinner" via CSS quando houver texto */
+    #spinner {
+      display: inline-block;
+      color: var(--muted);
+      font-size: 13px;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+
+    #spinner:not(:empty)::before {
+      content: '';
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 8px;
+      border-radius: 50%;
+      border: 2px solid rgba(11, 105, 255, 0.18);
+      border-top-color: var(--primary);
+      animation: spin .9s linear infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #eef2f7;
+      margin: 18px 0
+    }
+
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #0b1220;
+      margin-bottom: 8px
+    }
+
+    details pre {
+      margin-top: 8px
+    }
+
+    /* responsividade */
+    @media (min-width:1024px) {
+      body {
+        padding: 36px
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 22px;
+        align-items: start;
+        width: 100%;
+        max-width: 1200px;
+      }
+
+      article {
+        padding: 28px
+      }
+
+      .card {
+        padding: 22px
+      }
+    }
+
+    @media screen and (max-width: 768px) {
+      .modeloSelect {
+        width: 100%;
+      }
+
+      .row {
+        gap: 10px
+      }
+
+      .col {
+        min-width: 120px
+      }
     }
   </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3163843239830061"
-     crossorigin="anonymous"></script>
+    crossorigin="anonymous"></script>
 </head>
 
 <body>
+  <div>
+    <article>
+      <h1>Tabela FIPE: o que é e por que importa</h1>
+
+      <p>Quando você compra ou vende um veículo, a Tabela FIPE é uma das referências mais usadas no Brasil. Ela
+        apresenta preços médios praticados no mercado para carros, motos e caminhões e é atualizada mensalmente pela
+        Fundação Instituto de Pesquisas Econômicas (FIPE).</p>
+
+      <h2>O que é a Tabela FIPE?</h2>
+      <p>É um referencial de preços médios utilizado por compradores, vendedores, seguradoras e órgãos públicos para
+        avaliar o valor de veículos no mercado. Serve como base para negociações, cálculo de seguros e tributos.</p>
+
+      <h2>Como a Tabela FIPE é calculada?</h2>
+      <p>A FIPE considera diversos fatores para obter o valor médio de cada modelo, entre eles:</p>
+      <ul>
+        <li><strong>Ano de fabricação:</strong> modelos mais novos costumam valer mais;</li>
+        <li><strong>Marca e modelo:</strong> marcas e modelos mais demandados impactam o preço;</li>
+        <li><strong>Estado médio de conservação:</strong> a tabela reflete a média do mercado;</li>
+        <li><strong>Oferta e demanda:</strong> disponibilidade influencia o valor médio.</li>
+      </ul>
+
+      <h2>Impacto no preço do veículo</h2>
+      <p>A Tabela FIPE influencia diretamente:</p>
+      <ul>
+        <li><strong>Compra e venda:</strong> serve como referência para negociar um preço justo;</li>
+        <li><strong>Seguro:</strong> seguradoras utilizam a tabela para calcular indenizações;</li>
+        <li><strong>IPVA e licenciamento:</strong> valores podem ser baseados na cotação FIPE.</li>
+      </ul>
+
+      <h2>Por que consultar a FIPE?</h2>
+      <p>Ela oferece transparência e segurança nas negociações, ajudando a evitar preços fora do mercado e servindo como
+        referência jurídica em disputas.</p>
+
+      <h2>Conclusão</h2>
+      <p>Consultar a Tabela FIPE antes de comprar, vender ou segurar um veículo garante uma negociação mais justa e
+        informada, com base em uma referência amplamente aceita no mercado brasileiro.</p>
+    </article>
+  </div>
   <div class="card">
     <h2>Tabela FIPE — Busca de veículo</h2>
     <p class="muted">Selecione o tipo, marca, modelo e ano para ver os dados FIPE.</p>
@@ -106,7 +336,9 @@
 
     <div style="margin-top:14px">
       <button id="buscar" disabled>Buscar dados FIPE</button>
+      <span id="spinner" class="muted" style="margin-left:12px"></span>
       <span id="status" class="muted" style="margin-left:12px"></span>
+
     </div>
 
     <hr style="margin:18px 0">
@@ -125,10 +357,13 @@
     const buscarBtn = document.getElementById('buscar');
     const resultadoEl = document.getElementById('resultado');
     const statusEl = document.getElementById('status');
+    const spinner = document.getElementById('spinner')
 
     const API_BASE = 'https://fipe.parallelum.com.br/api/v2';
 
     function setStatus(text) { statusEl.textContent = text || '' }
+    function setSpinner(text) { spinner.textContent = text || '' }
+
 
     tipoEl.addEventListener('change', async () => {
       clearSelect(marcaEl, '-- carregando marcas --');
@@ -140,15 +375,17 @@
       if (!tipo) { setStatus(''); marcaEl.disabled = true; return }
 
       try {
+        setSpinner(' ');
         setStatus('Buscando marcas...');
+
         const res = await fetch(`${API_BASE}/${tipo}/brands`);
         if (!res.ok) throw new Error('Erro ao buscar marcas');
         const data = await res.json();
 
-        console.log(data);
         populateSelect(marcaEl, data, 'Selecione a marca');
         marcaEl.disabled = false;
         setStatus('Marcas carregadas');
+        setSpinner('')
       } catch (err) {
         setStatus('Erro ao carregar marcas');
         marcaEl.disabled = true;
@@ -165,9 +402,11 @@
       const tipo = tipoEl.value;
       const marcaId = marcaEl.value;
       if (!marcaId) { modeloEl.disabled = true; return }
-      console.log(marcaId, "<-- era pra ser o ID")
+
       try {
+        setSpinner(' ');
         setStatus('Buscando modelos...');
+
         const res = await fetch(`${API_BASE}/${tipo}/brands/${marcaId}/models`);
         if (!res.ok) throw new Error('Erro ao buscar modelos');
         const data = await res.json();
@@ -176,7 +415,8 @@
         const models = data.models || data;
         populateSelect(modeloEl, models, 'Selecione o modelo');
         modeloEl.disabled = false;
-        setStatus('Modelos carregados');
+        setStatus('Modelos carregados')
+        setSpinner('');
       } catch (err) {
         setStatus('Erro ao carregar modelos');
         modeloEl.disabled = true;
@@ -195,7 +435,9 @@
       if (!modeloId) { anoEl.disabled = true; return }
 
       try {
+        setSpinner(' ');
         setStatus('Buscando anos...');
+
         const res = await fetch(`${API_BASE}/${tipo}/brands/${marcaId}/models/${modeloId}/years`);
         if (!res.ok) throw new Error('Erro ao buscar anos');
         const data = await res.json();
@@ -205,6 +447,7 @@
         anoEl.disabled = false;
         buscarBtn.disabled = false;
         setStatus('Anos carregados');
+        setSpinner('');
       } catch (err) {
         setStatus('Erro ao carregar anos');
         anoEl.disabled = true;
@@ -221,12 +464,14 @@
       if (!tipo || !marcaId || !modeloId || !anoId) return alert('Selecione todos os campos');
 
       try {
+        setSpinner(' ');
         setStatus('Buscando dados do veículo...');
         const res = await fetch(`${API_BASE}/${tipo}/brands/${marcaId}/models/${modeloId}/years/${encodeURIComponent(anoId)}`);
         if (!res.ok) throw new Error('Erro ao buscar dados do veículo');
         const data = await res.json();
 
         renderResult(data, tipo);
+        setSpinner('');
         setStatus('Dados carregados');
       } catch (err) {
         setStatus('Erro ao buscar dados');
