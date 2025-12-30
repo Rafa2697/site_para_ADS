@@ -383,7 +383,8 @@ $meta_description = 'Calculadora interativa da Tabela Price para simular financi
                 <p class="muted">Observação: se a taxa for fornecida em percentual, converta dividindo por 100 (ex: 1{,}5% → 0{,}015).</p>
             </section>
         </article>
-        <br><br>
+        <br>
+        <br>
         <h2>Calculadora de Financiamento Tabela Price</h2>
         <?php if ($erro): ?>
             <!-- Se existir mensagem de erro, exibe-a com escape para evitar XSS -->
@@ -455,6 +456,10 @@ $meta_description = 'Calculadora interativa da Tabela Price para simular financi
                 </table>
             </div>
         <?php endif; ?>
+
+        <br>
+        <p class="muted">Agora que você calculou o financiamento, confira o valor do veículo na nossa <a href="tabela_fipe.html">Consulta Tabela Fip</a>.</p>
+        <br>
     </div>
 
     <script>
