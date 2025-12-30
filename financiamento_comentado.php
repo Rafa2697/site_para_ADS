@@ -193,14 +193,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+<?php
+// Metadados dinâmicos para SEO (substitua/ajuste conforme necessário)
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'example.com';
+$request_uri = $_SERVER['REQUEST_URI'] ?? '/financiamento_comentado.php';
+$page_url = $protocol . '://' . $host . $request_uri;
+$meta_description = 'Calculadora interativa da Tabela Price para simular financiamentos: prestações, amortização e total pago. Ideal para entender quando vale a pena financiar.';
+?>
 <!doctype html>
 <html lang="pt-BR">
 
 <head>
     <meta charset="utf-8"> <!-- define encoding UTF-8 -->
     <meta name="viewport" content="width=device-width,initial-scale=1"> <!-- torna responsivo -->
+        <title>Calculadora de Financiamento (Tabela Price)</title> <!-- título da página -->
+        <meta name="description" content="<?= htmlspecialchars($meta_description, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8') ?>">
+        <meta name="robots" content="index,follow">
+        <link rel="canonical" href="<?= htmlspecialchars($page_url, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8') ?>">
+        <!-- Open Graph / Social -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="Calculadora de Financiamento (Tabela Price)">
+        <meta property="og:description" content="<?= htmlspecialchars($meta_description, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8') ?>">
+        <meta property="og:url" content="<?= htmlspecialchars($page_url, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8') ?>">
+        <meta property="og:locale" content="pt_BR">
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="Calculadora de Financiamento (Tabela Price)">
+        <meta name="twitter:description" content="<?= htmlspecialchars($meta_description, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8') ?>">
+    
+        <!-- JSON-LD para SEO estruturado -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "url": "<?= htmlspecialchars($page_url, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8') ?>",
+            "name": "Calculadora de Financiamento (Tabela Price)",
+            "description": "<?= htmlspecialchars($meta_description, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8') ?>",
+            "inLanguage": "pt-BR",
+            "mainEntity": {
+                "@type": "SoftwareApplication",
+                "name": "Calculadora Tabela Price",
+                "applicationCategory": "FinanceApplication"
+            }
+        }
+        </script>
     <meta name="google-adsense-account" content="ca-pub-3163843239830061">
-    <title>Calculadora de Financiamento (Tabela Price)</title> <!-- título da página -->
     <style>
         /* Estilos inline: definem aparência básica da página */
         body {
@@ -258,13 +296,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-collapse: collapse;
             margin-top: 16px
         }
-        
+
         /* Torna a tabela rolável horizontalmente quando necessário
            e ativa smooth scrolling em dispositivos touch */
         .wrapper-table {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
+
         th,
         td {
             padding: 8px;
@@ -282,29 +321,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.9em
         }
 
+        blockquote {
+            border-left: 4px solid #ccc;
+            margin: 12px 0;
+            padding-left: 12px;
+            color: #555;
+            background: #f9f9f9;
+        }
 
-        
+
+
         @media screen and (max-width: 768px) {
             .card {
                 width: 90%;
             }
 
-            .row{
+            .row {
                 font-size: 14px;
                 display: flex;
                 flex-direction: column;
             }
         }
     </style>
+    <!-- KaTeX para renderização matemática bonita -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3163843239830061"
-     crossorigin="anonymous"></script>
+        crossorigin="anonymous"></script>
 </head>
 
 <body>
     <div class="card">
-        <h2>Calculadora de Financiamento — Tabela Price</h2>
+        <h2>Como Calcular e Quando Vale a Pena?</h2>
         <p class="muted">Preencha o valor e número de parcelas. Se não informar a taxa mensal, tentaremos obter a taxa atual via BrasilAPI.</p>
-
+        <article>
+            <section>
+                <h3>O QUE É O SISTEMA DE AMORTIZAÇÃO TABELA PRICE?</h3>
+                <P>O sistema de amortização contém todas as informações sobre as formas de pagamento e prazo de quitação da dívida. Por meio dele, é definido o número de parcelas para o pagamento do saldo devedor, o valor de cada prestação e como a dívida será liquidada ao longo do contrato.</P>
+            </section>
+            <section>
+                <h3>TABELA PRICE</h3>
+                <blockquote>
+                    <p>Existem diversos sistemas de amortização diferentes. Um dos mais utilizados para amortizar dívidas é a Tabela Price, também conhecida como Sistema Francês de Pagamentos.</p>
+                </blockquote>
+                <p id="">Neste modelo, o pagamento é feito a partir de um conjunto de <strong id="">prestações fixas</strong> de mesmo valor. As parcelas são pagas sucessivamente em <strong id="">valores constantes</strong>, já com os juros embutidos no valor de cada prestação.</p>
+                <p id="">Como as parcelas são constantes, o montante total é amortizado de forma <strong id="">crescente</strong> ao longo do contrato. Ou seja, a cada prestação o saldo da dívida é reduzido em volume maior, até que a dívida seja quitada.</p>
+                <p id="">A <strong id="">principal vantagem</strong> do sistema de amortização <strong id="">Tabela Price são as prestações fixas</strong>. Como o valor a ser pago mensalmente não corre o risco de sofrer reajustes, o planejamento financeiro associado à dívida é sólido, sem as surpresas de inflação e crises financeiras. Operações com Tabela Price costumam se destinar àqueles que procuram garantir <strong id="">estabilidade no orçamento.</strong></p>
+            </section>
+            <section id="formula-section">
+                <h3>Fórmula do Cálculo</h3>
+                <p>Para calcular o valor da prestação (PMT) na Tabela Price usamos:</p>
+                <div class="formula-block" style="margin:10px 0;padding:12px;border-radius:8px;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,0.04);">
+                    $$\mathrm{PMT} = PV \cdot \dfrac{i\,(1+i)^{n}}{(1+i)^{n}-1}$$
+                </div>
+                <ul>
+                    <li><strong>PV</strong>: Valor presente (valor do financiamento), denotado por $PV$</li>
+                    <li><strong>i</strong>: Taxa de juros mensal (decimal), denotada por $i$ — ex: $0{,}015 = 1{,}5\%$ a.m.</li>
+                    <li><strong>n</strong>: Número de parcelas (inteiro), denotado por $n$</li>
+                </ul>
+                <p class="muted">Observação: se a taxa for fornecida em percentual, converta dividindo por 100 (ex: 1{,}5% → 0{,}015).</p>
+            </section>
+        </article>
+        <br><br>
+        <h2>Calculadora de Financiamento Tabela Price</h2>
         <?php if ($erro): ?>
             <!-- Se existir mensagem de erro, exibe-a com escape para evitar XSS -->
             <div style="background:#ffecec;padding:10px;border-radius:6px;color:#900;margin-bottom:12px"><?= htmlspecialchars($erro) ?></div>
@@ -400,6 +480,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 this.disabled = false;
                 this.textContent = 'Obter taxa atual';
             });
+        });
+    </script>
+    <script>
+        // Renderiza expressões KaTeX automaticamente quando a biblioteca carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof renderMathInElement === 'function') {
+                renderMathInElement(document.body, {
+                    delimiters: [{
+                            left: '$$',
+                            right: '$$',
+                            display: true
+                        },
+                        {
+                            left: '$',
+                            right: '$',
+                            display: false
+                        }
+                    ]
+                });
+            }
         });
     </script>
 </body>
