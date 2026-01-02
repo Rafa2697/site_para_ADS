@@ -1,3 +1,5 @@
 User-agent: *
 Allow: /
+# Atualize o valor abaixo para o domínio real do seu site antes de publicar.
+# Exemplo: Sitemap: https://toolster.com.br/sitemap.php
 Sitemap: https://toolster.com.br/sitemap.php

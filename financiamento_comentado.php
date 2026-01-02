@@ -461,6 +461,7 @@ $meta_description = 'Calculadora interativa da Tabela Price para simular financi
         <p class="muted">Agora que você calculou o financiamento, confira o valor do veículo na nossa <a href="tabela_fipe.html">Consulta Tabela Fip</a>.</p>
         <br>
     </div>
+    <p style="text-align:center;margin-top:18px"><a href="privacy.html">Política de Privacidade</a></p>
 
     <script>
         // Script que chama endpoint local para obter taxa via AJAX

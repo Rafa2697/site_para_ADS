@@ -14,7 +14,7 @@ $pages = [
 ];
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 foreach ($pages as $p) {
     $file = __DIR__ . ($p === '/' ? '/index.html' : $p);
     $lastmod = file_exists($file) ? gmdate('Y-m-d\TH:i:s\Z', filemtime($file)) : gmdate('Y-m-d\TH:i:s\Z');
